@@ -1,6 +1,5 @@
 """Data pipeline: corpus loading, character tokenizer, and batch sampling."""
 
-import json
 import os
 
 import torch
@@ -36,16 +35,6 @@ class CharTokenizer:
     def from_dict(cls, data: dict[str, list[str]]) -> "CharTokenizer":
         return cls(data["chars"])
 
-    #json on disk -> dictionary -> tokeniser object
-    def save(self, path: str) -> None:
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(self.to_dict(), f, indent=2)
-    @classmethod
-    def load( cls, path: str ) -> "CharTokenizer":
-        with open(path, "r", encoding="utf-8") as f:
-            return cls.from_dict(json.load(f))
-
-
 def load_text(path: str | os.PathLike[str]) -> str:
     path = str(path)
     if os.path.isdir(path):
@@ -77,7 +66,7 @@ def encode_and_split(
 ) -> tuple[torch.Tensor, torch.Tensor]:
     #Encode the corpus with the tokenizer and split into train/val tensors
     data = torch.tensor(tokenizer.encode(load_text(path)), dtype=torch.long)
-    n = int(config.train_split * len(data))
+    n = int( len(data) * config.train_split)
     return data[:n], data[n:]
 
 
