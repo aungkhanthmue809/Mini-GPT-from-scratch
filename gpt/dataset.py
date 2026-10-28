@@ -29,11 +29,13 @@ class CharTokenizer:
         return "".join(self.itos[int(t)] for t in tokens)
 
     #tokeniser object -> dicttnary -> json on disk
+    #this can also work with a list, dictionary use is mermely a desing choice because its self desicbring
     def to_dict(self) -> dict[str, list[str]]:
         return {"chars": self.chars}
+    
     @classmethod
     def from_dict(cls, data: dict[str, list[str]]) -> "CharTokenizer":
-        return cls(data["chars"])
+        return cls( data["chars"] ) 
 
 def load_text(path: str | os.PathLike[str]) -> str:
     path = str(path)
@@ -58,17 +60,20 @@ def load_text(path: str | os.PathLike[str]) -> str:
         raise FileNotFoundError(f"Path does not exist or is not a file/directory: {path}")
 
 def build_tokenizer(path: str | os.PathLike[str]) -> CharTokenizer:
-    #Load the corpus (file or folder of .txt files) and build its tokenizer
-    return CharTokenizer.from_text(load_text(path))
+    
+    data_set = load_text(path)
+    tokenizer = CharTokenizer.from_text(data_set)
+    return tokenizer
 
 def encode_and_split(
     tokenizer: CharTokenizer, config: GPTConfig, path: str | os.PathLike[str]
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    #Encode the corpus with the tokenizer and split into train/val tensors
+    #Encode the corpus with the tokenizer 
     data = torch.tensor(tokenizer.encode(load_text(path)), dtype=torch.long)
+    #and split into train/val tensors
     n = int( len(data) * config.train_split)
+    
     return data[:n], data[n:]
-
 
 def get_batch(
     data: torch.Tensor, config: GPTConfig, device: torch.device ) -> tuple[torch.Tensor, torch.Tensor]:

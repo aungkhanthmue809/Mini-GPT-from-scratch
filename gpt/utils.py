@@ -41,6 +41,7 @@ def estimate_loss(
     #eval starts
     model.eval()
     
+    #item means turing a tensor into a single value
     for split, data in splits.items():
         losses = torch.zeros(config.eval_iters)
         
@@ -77,11 +78,12 @@ def save_checkpoint(
 def load_checkpoint(
     path: str | os.PathLike, device: torch.device | None = None
 ) -> tuple[GPT, GPTConfig, CharTokenizer, dict]:
-    """Rebuild the model + tokenizer stored in a checkpoint directory/file path."""
+    
     if device is None:
         device = infer_device()
     payload = torch.load(path, map_location=device, weights_only=False)
     config = GPTConfig(**payload["config"])
+    
     tokenizer = CharTokenizer.from_dict(payload["tokenizer"])
     model = GPT(config).to(device)
     model.load_state_dict(payload["model"])
@@ -96,15 +98,16 @@ def generate_sample(
     prompt: str = "",
     max_new_tokens: int = 200,
 ) -> str:
-    """Encode a prompt, sample `max_new_tokens` tokens and decode back to text."""
+    
     tokens = tokenizer.encode(prompt)
     if not tokens:
         tokens = tokenizer.encode("\n") or [0]  # start from a newline, like nanoGPT
     index = torch.tensor([tokens], dtype=torch.long, device=device)
     generated = model.generate(index, max_new_tokens)
+    
     return tokenizer.decode(generated[0].tolist())
 
-
+#AI implemented feature
 class LossHistory:
     """Train/val loss curve recorded at each evaluation point."""
 
@@ -118,6 +121,7 @@ class LossHistory:
         self.train.append(train_loss)
         self.val.append(val_loss)
 
+    #loss historty obj -> dicitonary .for storing in json
     def to_dict(self) -> dict[str, list]:
         return {"step": self.steps, "train_loss": self.train, "val_loss": self.val}
 
