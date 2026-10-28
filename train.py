@@ -61,6 +61,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def train(args: argparse.Namespace) -> None:
+    #step 0 set device and intialise checkpoint dir
     device = torch.device(args.device) if args.device else torch.device(
         "cuda" if torch.cuda.is_available() else "cpu"
     )
@@ -69,25 +70,26 @@ def train(args: argparse.Namespace) -> None:
     checkpoint_dir = Path(args.checkpoint_dir)
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
-    # Data first, config second: the corpus decides vocab_size, so count it
-    # before building the model's configuration.
+    #step 1 set up tokeniser and config using dataset
     tokenizer = build_tokenizer(args.data) 
-    #config instance
     config = GPTConfig(vocab_size=tokenizer.vocab_size)
+    #just configuration for dynamic max iter as cli
     if args.max_iters is not None:
         config.max_iters = args.max_iters
-        
+    
+    #step 2 use tokeniser to on the dataset to encode and split it
     train_data, val_data = encode_and_split(tokenizer, config, args.data)
     print(
         f"Corpus: {args.data} | vocab {config.vocab_size} chars | "
         f"train {len(train_data):,} tokens | val {len(val_data):,} tokens"
     )
 
+    #step 3 intialise model and its optimizer using model_config
     model = GPT(config).to(device)
     print(f"Model parameters: {model.num_parameters():,}")
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
 
-    # Optionally continue from the last checkpoint (model + optimizer + history).
+    #step 3.1 reload data from pt file in case this is a resume
     start_step = 0
     if args.resume:
         ckpt_path = checkpoint_dir / "model.pt"
@@ -102,6 +104,7 @@ def train(args: argparse.Namespace) -> None:
         
         print(f"Resumed model + optimizer from {ckpt_path} (step {start_step})")
 
+    #step 3.2 check if loss history.json exists and load the past values
     history = LossHistory()
     if args.resume and (checkpoint_dir / "loss_history.json").exists():
         with open(checkpoint_dir / "loss_history.json", "r", encoding="utf-8") as f:
@@ -110,6 +113,7 @@ def train(args: argparse.Namespace) -> None:
         history.train = list(prev["train_loss"])
         history.val = list(prev["val_loss"])
 
+    # step 4 the main Training LOOP
     for step in range(start_step, config.max_iters):
 
         # Evaluate, print, checkpoint and record the curve at the eval interval.
@@ -147,11 +151,11 @@ def train(args: argparse.Namespace) -> None:
         torch.nn.utils.clip_grad_norm_(model.parameters(), config.gradient_clip_norm)
         optimizer.step()
 
-    # Final artifacts: checkpoint, history, loss curve plot and a sample.
+    # step 5 save checkpoint,loss history json and a matplot png
     save_checkpoint(model, optimizer, config, tokenizer, config.max_iters, checkpoint_dir / "model.pt")
     history.save(checkpoint_dir / "loss_history.json")
-    curve_path = checkpoint_dir / "loss_curve.png"
     
+    curve_path = checkpoint_dir / "loss_curve.png"
     if plot_loss_curve(history, curve_path):
         print(f"Loss curve saved to {curve_path}")
 
