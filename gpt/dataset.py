@@ -15,11 +15,6 @@ class CharTokenizer:
         self.itos: dict[int, str] = {i: ch for i, ch in enumerate(chars)}
         self.vocab_size: int = len(chars)
 
-    #edits the cls object to have a vocab
-    @classmethod
-    def from_text(cls, text: str) -> "CharTokenizer":
-        return cls(sorted(set(text)))
-
     def encode(self, text: str) -> list[int]:
         """Convert text into token ids. Characters outside the vocab are skipped."""
         return [self.stoi[ch] for ch in text if ch in self.stoi]
@@ -36,6 +31,11 @@ class CharTokenizer:
     @classmethod
     def from_dict(cls, data: dict[str, list[str]]) -> "CharTokenizer":
         return cls( data["chars"] ) 
+    
+    #edits the cls object to have a vocab
+    @classmethod
+    def from_text(cls, text: str) -> "CharTokenizer":
+        return cls( sorted(set(text)) )
 
 def load_text(path: str | os.PathLike[str]) -> str:
     path = str(path)

@@ -4,15 +4,13 @@ import json
 import math
 import os
 from dataclasses import asdict
-
 import torch
-
 from .config import GPTConfig
 from .dataset import CharTokenizer, get_batch
 from .model import GPT
 
 
-def infer_device() -> torch.device:
+def get_device() -> torch.device:
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -24,7 +22,7 @@ def get_lr(step: int, max_iters: int, learning_rate: float, warmup_iters: int = 
     decay_ratio = (step - warmup_iters) / (max_iters - warmup_iters)
     coeff = 0.5 * (1.0 + math.cos(math.pi * decay_ratio))
     #LR = 0.1LR + 0.9LR * c
-    #decaying with cosine decay formula until it goes to 0 and only 10$ is left
+    #decaying with cosine decay formula until it goes to 0 and only 10% is left
     return learning_rate * 0.1 + coeff * learning_rate * 0.9 
 
 
@@ -51,7 +49,7 @@ def estimate_loss(
             losses[k] = loss.item()
             
         out[split] = losses.mean().item()
-    #eval ends and back to training mode3
+    #eval ends and back to training mode
     model.train()
     return out
 
@@ -80,7 +78,7 @@ def load_checkpoint(
 ) -> tuple[GPT, GPTConfig, CharTokenizer, dict]:
     
     if device is None:
-        device = infer_device()
+        device = get_device()
     payload = torch.load(path, map_location=device, weights_only=False)
     config = GPTConfig(**payload["config"])
     
@@ -88,7 +86,6 @@ def load_checkpoint(
     model = GPT(config).to(device)
     model.load_state_dict(payload["model"])
     return model, config, tokenizer, payload
-
 
 def generate_sample(
     model: GPT,

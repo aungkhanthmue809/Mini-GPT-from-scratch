@@ -2,11 +2,6 @@ from dataclasses import dataclass
 
 @dataclass
 class GPTConfig:
-    # --- Model architecture ---------------------------
-    from dataclasses import dataclass
-
-@dataclass
-class GPTConfig:
     # Model architecture
     vocab_size: int
     block_size: int = 64

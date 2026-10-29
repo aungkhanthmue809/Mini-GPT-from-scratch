@@ -1,8 +1,4 @@
-"""Train the MiniGPT model from the command line.
-
-Usage:
-    python train.py --data data/shakespeare.txt --max-iters 10000
-"""
+#Usage: python train.py --data data/shakespeare.txt --max-iters 10000
 
 import argparse
 import json
@@ -22,7 +18,6 @@ from gpt import (
     plot_loss_curve,
     save_checkpoint,
 )
-
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(

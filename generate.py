@@ -1,11 +1,12 @@
-"""
-Usage:
-    python generate.py --checkpoint checkpoints/model.pt --prompt "To be or not" --max-new-tokens 500
-"""
+#Usage: python generate.py --checkpoint checkpoints/model.pt --prompt "To be or not" --max-new-tokens 500
 
 import argparse
 from pathlib import Path
-from gpt.utils import generate_sample, infer_device, load_checkpoint
+import sys
+from gpt.utils import generate_sample, get_device, load_checkpoint
+
+#windows console (cp932 etc) can't print every char the vocab can produce -> force utf-8
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 
 def parse_args() -> argparse.Namespace:
@@ -42,7 +43,7 @@ def main() -> None:
             "Train a model first, e.g.: python train.py --data data/shakespeare.txt"
         )
 
-    device = infer_device()
+    device = get_device()
     print(f"Using device: {device}")
     print(f"Loading checkpoint: {args.checkpoint}")
     #left to check
@@ -51,6 +52,7 @@ def main() -> None:
     print(f"Checkpoint trained for {payload.get('iter', '?')} iterations")
 
     print(f"Prompt: {args.prompt!r}" + ("" if args.prompt else " (starting from newline)"))
+    
     sample = generate_sample(
         model, tokenizer, config, device,
         prompt=args.prompt, max_new_tokens=args.max_new_tokens,
