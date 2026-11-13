@@ -23,4 +23,5 @@ checkpoints/*
 !checkpoints/loss_history.json
 !checkpoints/loss_curve.png
 !checkpoints/sample.txt
-data/*.txt
+data/
+data_large/
