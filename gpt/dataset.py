@@ -1,12 +1,7 @@
-"""Data pipeline: corpus loading, character tokenizer, and batch sampling."""
-
 import os
-
 import torch
-
 from .config import GPTConfig
 
-#NOT A NN COMPONENT ANYMORE
 class CharTokenizer:
 
     def __init__(self, chars: list[str]) -> None:
@@ -16,23 +11,28 @@ class CharTokenizer:
         self.vocab_size: int = len(chars)
 
     def encode(self, text: str) -> list[int]:
-        """Convert text into token ids. Characters outside the vocab are skipped."""
         return [self.stoi[ch] for ch in text if ch in self.stoi]
 
     def decode(self, tokens: list[int]) -> str:
-        """Convert a list of token ids back into text."""
-        return "".join(self.itos[int(t)] for t in tokens)
+        characters = []
+
+        for token in tokens:
+            character = self.itos[int(token)]
+            characters.append(character)
+
+        return "".join(characters)
 
     #tokeniser object -> dicttnary -> json on disk
     #this can also work with a list, dictionary use is mermely a desing choice because its self desicbring
+    #future proofing incase i add more token/vocab types
     def to_dict(self) -> dict[str, list[str]]:
         return {"chars": self.chars}
     
+    #future proofing incase i add more padding and unknown token types
     @classmethod
     def from_dict(cls, data: dict[str, list[str]]) -> "CharTokenizer":
         return cls( data["chars"] ) 
-    
-    #edits the cls object to have a vocab
+
     @classmethod
     def from_text(cls, text: str) -> "CharTokenizer":
         return cls( sorted(set(text)) )

@@ -110,8 +110,6 @@ def make_norm(config: GPTConfig) -> nn.Module:
 
 
 class Block(nn.Module):
-    """Transformer block: pre-normalized residual wrappers around attention
-    and feed-forward."""
 
     def __init__(self, config: GPTConfig) -> None:
         super().__init__()
@@ -130,29 +128,25 @@ class Block(nn.Module):
 
 
 class GPT(nn.Module):
-    """Character-level autoregressive transformer language model (decoder-only).
-
-    Flow: token embeddings + learned positional embeddings -> N transformer
-    blocks -> final norm -> linear projection to logits over the vocabulary,
-    weight-tied with the token embedding table.
-    """
 
     def __init__(self, config: GPTConfig) -> None:
         super().__init__()
         self.config = config
         self.token_embedding_table = nn.Embedding(config.vocab_size, config.n_embd)
         self.position_embedding_table = nn.Embedding(config.block_size, config.n_embd)
-        self.blocks = nn.Sequential(*[Block(config) for _ in range(config.n_layers)])
-        self.ln_f = make_norm(config)
-        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
+        self.blocks = nn.Sequential(*[Block(config) for _ in range(config.n_blocks)])
+        self.final_norm = make_norm(config)
+        self.proj = nn.Linear(config.n_embd, config.vocab_size, bias=False)
 
-        # Weight tying: input embedding and output projection share one matrix,
-        # which reduces parameters and helps small models generalize.
-        self.token_embedding_table.weight = self.lm_head.weight
+        #Weight tying: input embedding and output projection share one matrix,
+        #which reduces parameters and helps small models generalize.
+        self.token_embedding_table.weight = self.proj.weight
 
         # Custom init instead of PyTorch defaults, applied recursively to every submodule.
+        # this method accepts a method this made the creator confused at one point
         self.apply(self._init_weights)
 
+    #Is completely an arbitary decisin i just wanted to show my future self it can be done like this
     def _init_weights(self, module: nn.Module) -> None:
         if isinstance(module, nn.Linear):
             nn.init.normal_(module.weight, mean=0.0, std=0.02)
@@ -169,8 +163,7 @@ class GPT(nn.Module):
     def forward(
         self, index: torch.Tensor, targets: torch.Tensor | None = None
     ) -> tuple[torch.Tensor, torch.Tensor | None]:
-        """Compute logits over the vocabulary; if targets are given, also the
-        mean cross-entropy loss."""
+        
         B, T = index.shape
         tok_emb = self.token_embedding_table(index)  # (B, T, n_embd)
         pos_emb = self.position_embedding_table(
@@ -178,8 +171,8 @@ class GPT(nn.Module):
         )                                            # (T, n_embd)
         logits = tok_emb + pos_emb                   # (B, T, n_embd)
         logits = self.blocks(logits)
-        logits = self.ln_f(logits)
-        logits = self.lm_head(logits)                # (B, T, vocab_size)
+        logits = self.final_norm(logits)
+        logits = self.proj(logits)                # (B, T, vocab_size)
 
         loss: torch.Tensor | None = None
         if targets is not None:

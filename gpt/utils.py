@@ -74,17 +74,17 @@ def save_checkpoint(
 
 
 def load_checkpoint(
-    path: str | os.PathLike, device: torch.device | None = None
+    path: str | os.PathLike, device: torch.device|None           = None
 ) -> tuple[GPT, GPTConfig, CharTokenizer, dict]:
     
     if device is None:
         device = get_device()
     payload = torch.load(path, map_location=device, weights_only=False)
     config = GPTConfig(**payload["config"])
-    
     tokenizer = CharTokenizer.from_dict(payload["tokenizer"])
-    model = GPT(config).to(device)
-    model.load_state_dict(payload["model"])
+    
+    model = GPT(config).to(device)          #model setting
+    model.load_state_dict(payload["model"]) #model state reload
     return model, config, tokenizer, payload
 
 def generate_sample(
@@ -126,7 +126,7 @@ class LossHistory:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(self.to_dict(), f, indent=2)
 
-
+#AI implemented graph feature
 def plot_loss_curve(history: LossHistory, path: str | os.PathLike) -> bool:
     
     try:

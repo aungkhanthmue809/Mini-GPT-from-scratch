@@ -2,11 +2,7 @@
 
 import argparse
 from pathlib import Path
-import sys
 from gpt.utils import generate_sample, get_device, load_checkpoint
-
-#windows console (cp932 etc) can't print every char the vocab can produce -> force utf-8
-sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 
 def parse_args() -> argparse.Namespace:
@@ -46,7 +42,7 @@ def main() -> None:
     device = get_device()
     print(f"Using device: {device}")
     print(f"Loading checkpoint: {args.checkpoint}")
-    #left to check
+    
     model, config, tokenizer, payload = load_checkpoint(args.checkpoint, device)
     
     print(f"Checkpoint trained for {payload.get('iter', '?')} iterations")

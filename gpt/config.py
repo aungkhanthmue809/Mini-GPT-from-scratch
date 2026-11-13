@@ -7,7 +7,7 @@ class GPTConfig:
     block_size: int = 64
     n_embd: int = 128
     n_heads: int = 4
-    n_layers: int = 4
+    n_blocks: int = 4
     dropout: float = 0.1
 
     # Training
@@ -21,7 +21,7 @@ class GPTConfig:
     train_split: float = 0.9
 
     # Architecture options
-    use_rmsnorm: bool = False
+    use_rmsnorm: bool = True
     use_swiglu: bool = False
     '''
     vocab_size: int

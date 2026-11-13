@@ -1,4 +1,4 @@
-#Usage: python train.py --data data/shakespeare.txt --max-iters 10000
+#Usage: python train.py --data data/shakespeare.txt --max-iters 10000 --resume
 
 import argparse
 import json
