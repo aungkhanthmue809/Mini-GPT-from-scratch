@@ -87,6 +87,18 @@ python generate.py --checkpoint checkpoints/model.pt --prompt "It was a bright" 
 An empty prompt starts generation from a single newline character (nanoGPT convention).
 The character-level tokenizer is stored inside the checkpoint, so decoding always works.
 
+## Chat
+
+```bash
+python chat.py
+```
+
+A terminal chat REPL around the checkpoint: type a message, and the reply streams
+into the terminal one character at a time inside a chat bubble. The model is a plain
+character-level LM, so it continues the conversation text rather than following
+instructions. Commands: `/help`, `/clear`, `/exit`. Options: `--checkpoint`,
+`--max-new-tokens` (per-turn generation limit, default 400).
+
 ## Configuration
 
 All hyperparameters live in `gpt/config.py` (`GPTConfig` dataclass — the single source

@@ -33,7 +33,7 @@ class CharTokenizer:
     def from_dict(cls, data: dict[str, list[str]]) -> "CharTokenizer":
         return cls( data["chars"] ) 
 
-    @classmethod
+    @classmethod 
     def from_text(cls, text: str) -> "CharTokenizer":
         return cls( sorted(set(text)) )
 
