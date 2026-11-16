@@ -25,3 +25,6 @@ checkpoints/*
 !checkpoints/sample.txt
 data/
 data_large/
+
+# Personal / post drafts
+caption.txt
