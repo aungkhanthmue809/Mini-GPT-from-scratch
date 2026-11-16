@@ -18,11 +18,7 @@ __pycache__/
 train.log
 train_err.txt
 
-# Data / model weights (large — do not push)
-checkpoints/*
-!checkpoints/loss_history.json
-!checkpoints/loss_curve.png
-!checkpoints/sample.txt
+# Data (large — do not push)
 data/
 data_large/
 
